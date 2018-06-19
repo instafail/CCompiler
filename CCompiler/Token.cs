@@ -1,15 +1,19 @@
-﻿namespace CCompiler
+namespace CCompiler
 {
   public class Token
   {
-    // These should most likely be readonly, immutable style
-    // Have to add ctor then?
-    public TokenType Type { get; set; }
-    public string Text { get; set; }
+    readonly public TokenType type;
+    readonly public string text;
+    
+    public Token(string text , TokenType type )
+    {
+      this.text = text;
+      this.type = type;
+    }
 
     protected bool Equals(Token other)
     {
-      return Type == other.Type && string.Equals(Text, other.Text);
+      return type == other.type && string.Equals(text, other.text);
     }
 
     public override bool Equals(object obj)
@@ -24,7 +28,7 @@
     {
       unchecked
       {
-        return ((int) Type * 397) ^ (Text != null ? Text.GetHashCode() : 0);
+        return ((int) type * 397) ^ (text?.GetHashCode() ?? 0);
       }
     }
   }
