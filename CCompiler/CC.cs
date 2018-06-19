@@ -1,4 +1,5 @@
-﻿using System;
+using CCompiler.AbstractSyntaxTree;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -11,6 +12,20 @@ namespace CCompiler
       "int",
       "return"
     };
+
+    public static Program Parse(List<Token> list)
+    {
+      if (list == null)
+        throw new ArgumentNullException($"{nameof(list)} is Null");
+
+      var program = new Program();
+
+
+
+
+
+      return program;
+    }
 
     static void Main(string[] args)
     {
@@ -60,28 +75,27 @@ namespace CCompiler
 
     private static Token Classify(string token)
     {
-      var t = new Token();
-      t.Text = token;
+      TokenType type;
       // This could probably be made into a Map, then iterated over.
       // Needs to be OrderedMap, since keywords should be matched before identifiers
       if (token.Equals("{"))
-        t.Type = TokenType.OpenBrace;
+        type = TokenType.OpenBrace;
       else if (token.Equals("}"))
-        t.Type = TokenType.CloseBrace;
+        type = TokenType.CloseBrace;
       else if (token.Equals("("))
-        t.Type = TokenType.OpenParen;
+        type = TokenType.OpenParen;
       else if (token.Equals(")"))
-        t.Type = TokenType.CloseParen;
+        type = TokenType.CloseParen;
       else if (token.Equals(";"))
-        t.Type = TokenType.Semicolon;
+        type = TokenType.Semicolon;
       else if (Regex.IsMatch(token, "^[0-9]+$")) // Static compile of regex?
-        t.Type = TokenType.Integer;
+        type = TokenType.Integer;
       else if (Keywords.Contains(token))
-        t.Type = TokenType.Keyword;
+        type = TokenType.Keyword;
       else
-        t.Type = TokenType.Identifier;
+        type = TokenType.Identifier;
 
-      return t;
+      return new Token(token, type);
     }
   }
 }
