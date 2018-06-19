@@ -16,13 +16,13 @@ namespace Tests
     [Fact]
     public void SingleTokenReturnsToken()
     {
-      Assert.Equal(CC.Lex("{"), new List<Token>() { new Token("{", OpenBrace) });
+      Assert.Equal(CC.Lex("{"), new List<Token>() {new Token("{", OpenBrace)});
     }
 
     [Fact]
     public void WhitespacesAreNeverReturned()
     {
-      Assert.Equal(CC.Lex(" {"), new List<Token>() { new Token("{", OpenBrace) });
+      Assert.Equal(CC.Lex(" {"), new List<Token>() {new Token("{", OpenBrace)});
     }
 
     [Fact]
@@ -30,8 +30,8 @@ namespace Tests
     {
       Assert.Equal(CC.Lex("return;"), new List<Token>()
       {
-        new Token( "return" ,Keyword),
-        new Token(";",Semicolon),
+        new Token("return", Keyword),
+        new Token(";", Semicolon),
       });
     }
 
@@ -41,15 +41,15 @@ namespace Tests
       Assert.Equal(CC.Lex("int main() { return 2; }"),
         new List<Token>()
         {
-          new Token("int" , Keyword),
-          new Token("main",Identifier) ,
-          new Token("(",OpenParen) ,
-          new Token(")",CloseParen) ,
-          new Token("{",OpenBrace ) ,
-          new Token("return",Keyword) ,
-          new Token("2",Integer) ,
-          new Token(";",Semicolon) ,
-          new Token("}",CloseBrace) ,
+          new Token("int", Keyword),
+          new Token("main", Identifier),
+          new Token("(", OpenParen),
+          new Token(")", CloseParen),
+          new Token("{", OpenBrace),
+          new Token("return", Keyword),
+          new Token("2", Integer),
+          new Token(";", Semicolon),
+          new Token("}", CloseBrace),
         });
     }
 
@@ -59,17 +59,16 @@ namespace Tests
       Assert.Equal(CC.Lex("int main(){return 2;}"),
         new List<Token>()
         {
-          new Token("int" , Keyword),
-          new Token("main",Identifier) ,
-          new Token("(",OpenParen) ,
-          new Token(")",CloseParen) ,
-          new Token("{",OpenBrace ) ,
-          new Token("return",Keyword) ,
-          new Token("2",Integer) ,
-          new Token(";",Semicolon) ,
-          new Token("}",CloseBrace) ,
+          new Token("int", Keyword),
+          new Token("main", Identifier),
+          new Token("(", OpenParen),
+          new Token(")", CloseParen),
+          new Token("{", OpenBrace),
+          new Token("return", Keyword),
+          new Token("2", Integer),
+          new Token(";", Semicolon),
+          new Token("}", CloseBrace),
         });
     }
-
   }
 }

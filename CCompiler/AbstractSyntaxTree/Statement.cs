@@ -2,7 +2,7 @@ namespace CCompiler.AbstractSyntaxTree
 {
   public class Statement
   {
-    readonly public Expression returnExp;
+    public readonly Expression returnExp;
 
     public Statement()
     {
