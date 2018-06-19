@@ -2,10 +2,10 @@ namespace CCompiler
 {
   public class Token
   {
-    readonly public TokenType type;
-    readonly public string text;
-    
-    public Token(string text , TokenType type )
+    public readonly TokenType type;
+    public readonly string text;
+
+    public Token(string text, TokenType type)
     {
       this.text = text;
       this.type = type;
@@ -33,7 +33,8 @@ namespace CCompiler
     }
   }
 
-  public enum TokenType {
+  public enum TokenType
+  {
     Keyword,
     Identifier,
     OpenBrace,

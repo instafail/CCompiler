@@ -9,7 +9,6 @@ namespace Tests
 {
   public class ParserTests
   {
-
     [Fact]
     public void EmptyIsValid() =>
       Assert.Equal(CC.Parse(new List<Token>()), new Program());
@@ -23,26 +22,25 @@ namespace Tests
     {
       var expectedProgram =
         new Program(
-          new Function("main" ,new Statement( new Expression(2)))
-      );
+          new Function("main", new Statement(new Expression(2)))
+        );
 
-      var tokens = new TokenList {
-          {"int" , Keyword },
-          {"main",Identifier },
-          {"(",OpenParen },
-          {")",CloseParen },
-          {"{",OpenBrace },
-          {"return",Keyword },
-          {"2",Integer },
-          {";",Semicolon },
-          {"}",CloseBrace },
+      var tokens = new TokenList
+      {
+        {"int", Keyword},
+        {"main", Identifier},
+        {"(", OpenParen},
+        {")", CloseParen},
+        {"{", OpenBrace},
+        {"return", Keyword},
+        {"2", Integer},
+        {";", Semicolon},
+        {"}", CloseBrace},
       };
 
-      var actualProgram =  CC.Parse(tokens);
-      
+      var actualProgram = CC.Parse(tokens);
+
       Assert.Equal(expectedProgram, actualProgram);
     }
-
-
   }
 }
