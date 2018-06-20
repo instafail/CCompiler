@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace CCompiler.AbstractSyntaxTree
@@ -16,12 +18,12 @@ namespace CCompiler.AbstractSyntaxTree
     public Program(List<Function> functionList) =>
       this.functionList.AddRange(functionList);
 
+    public override bool Equals(object obj) =>
+      obj is Program program && functionList.SequenceEqual(program.functionList);
+
     public override int GetHashCode()
     {
-      return base.GetHashCode();
+      return HashCode.Combine(functionList);
     }
-
-    public override bool Equals(object obj) =>
-      obj?.GetType() == typeof(Program);
   }
 }
