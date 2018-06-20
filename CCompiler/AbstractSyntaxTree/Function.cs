@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-
 namespace CCompiler.AbstractSyntaxTree
 {
+  using System;
+  using System.Linq;
+  using System.Collections.Generic;
+
   public class Function
   {
     public readonly string name;
@@ -21,6 +23,17 @@ namespace CCompiler.AbstractSyntaxTree
     {
       this.name = name;
       this.statementList.AddRange(statementList);
+    }
+
+    public override bool Equals(object obj)
+    {
+      return obj is Function function &&
+             name == function.name && statementList.SequenceEqual(function.statementList);
+    }
+
+    public override int GetHashCode()
+    {
+      return HashCode.Combine(name, statementList);
     }
   }
 }
