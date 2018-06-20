@@ -31,6 +31,11 @@ namespace CCompiler
         return ((int) type * 397) ^ (text?.GetHashCode() ?? 0);
       }
     }
+
+    public override string ToString()
+    {
+      return text + ": " + type;
+    }
   }
 
   public enum TokenType
