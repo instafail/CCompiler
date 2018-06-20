@@ -1,7 +1,7 @@
-using CCompiler.AbstractSyntaxTree;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using CCompiler.AbstractSyntaxTree;
 
 namespace CCompiler
 {
@@ -18,7 +18,7 @@ namespace CCompiler
       if (list == null)
         throw new ArgumentNullException($"{nameof(list)} is Null");
 
-      if(list.Count == 0)
+      if (list.Count == 0)
       {
         return new Program();
       }
@@ -34,12 +34,12 @@ namespace CCompiler
     private static List<Function> ParseFunctions(IEnumerator<Token> enumerator)
     {
       var ret = new List<Function>();
-      var name = "";
+      string name;
 
       var t = enumerator.Current;
-      if (t != new Token("int", TokenType.Keyword))
+      if (!Equals(t, new Token("int", TokenType.Keyword)))
       {
-        throw new Exception("Returntype must be keyword!");
+        throw new Exception("Return must be keyword!");
       }
 
       t = GetNext(enumerator);
@@ -64,26 +64,56 @@ namespace CCompiler
         throw new Exception("");
       }
 
-      t = GetNext(enumerator);
-      if (t.type != TokenType.OpenBrace)
-      {
-        throw new Exception("");
-      }
 
-      // Parse body
-      List<Statement> p = ParseStatements(enumerator);
+      var p = ParseStatements(enumerator);
       ret.Add(new Function(name, p));
 
-      if (enumerator.Current.type != TokenType.CloseBrace)
-      {
-        throw new Exception("Closing brace not found");
-      }
       return ret;
     }
 
     private static List<Statement> ParseStatements(IEnumerator<Token> enumerator)
     {
-      throw new NotImplementedException();
+      var ret = new List<Statement>();
+      var t = GetNext(enumerator);
+      if (t.type != TokenType.OpenBrace)
+      {
+        throw new Exception("Open brace not found");
+      }
+
+      t = GetNext(enumerator);
+      if (t.type == TokenType.Keyword && t.text == "return")
+      {
+        ret.Add(new Statement(ParseExpression(enumerator)));
+      }
+      else
+      {
+        throw new Exception("Not a recognized keyword");
+      }
+
+      if (GetNext(enumerator).type != TokenType.Semicolon)
+      {
+        throw new Exception("Missing semicolon at statement end");
+      }
+
+      t = GetNext(enumerator);
+      if (t.type != TokenType.CloseBrace)
+      {
+        throw new Exception("Closing brace not found");
+      }
+
+      return ret;
+    }
+
+    private static Expression ParseExpression(IEnumerator<Token> enumerator)
+    {
+      try
+      {
+        return new Expression(int.Parse(GetNext(enumerator).text));
+      }
+      catch (FormatException ignored)
+      {
+        throw new Exception("Bad integer constant");
+      }
     }
 
     /// Modifies the enumerator!
@@ -103,7 +133,7 @@ namespace CCompiler
     {
       var ret = new List<Token>();
       var buf = ""; // This may have to become a char[] for performance later...
-      var wordBreakers = new HashSet<char>() { '{', '}', '(', ')', ';', ' ' };
+      var wordBreakers = new HashSet<char>() {'{', '}', '(', ')', ';', ' ', '\n'};
       foreach (var c in s)
       {
         if (wordBreakers.Contains(c))
@@ -163,6 +193,12 @@ namespace CCompiler
         type = TokenType.Identifier;
 
       return new Token(token, type);
+    }
+
+    public static Program LexAndParse(string source)
+    {
+      var tokens = Lex(source);
+      return Parse(tokens);
     }
   }
 }
