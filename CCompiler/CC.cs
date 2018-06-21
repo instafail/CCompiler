@@ -110,7 +110,7 @@ namespace CCompiler
       {
         return new Expression(int.Parse(GetNext(enumerator).text));
       }
-      catch (FormatException ignored)
+      catch (FormatException)
       {
         throw new Exception("Bad integer constant");
       }
@@ -127,6 +127,28 @@ namespace CCompiler
       {
         throw new Exception("Unexpected end of tokens");
       }
+    }
+
+    private static string GenerateExpression(Expression e)
+    {
+      return "$" + e.i;
+    }
+
+    private static string GenerateStatement(Statement s)
+    {
+      return "\tmovl " + GenerateExpression(s.returnExp) + ", %eax\n" +
+             "\tret\n";
+    }
+
+    public static string GenerateFunction(Function f)
+    {
+      return "\t.globl\t_main\n" +
+             "_main:\n" + GenerateStatement(f.statementList[0]);
+    }
+
+    public static string Generate(Program p)
+    {
+      return GenerateFunction(p.functionList[0]);
     }
 
     public static List<Token> Lex(string s)

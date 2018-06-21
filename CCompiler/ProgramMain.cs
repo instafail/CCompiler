@@ -1,11 +1,14 @@
+using System.IO;
+
 namespace CCompiler
 {
-  using System;
   class ProgramMain
   {
     static void Main(string[] args)
     {
-      Console.WriteLine("Hello World!");
+      var source = File.ReadAllText(args[0]);
+      var asm = CC.Generate(CC.LexAndParse(source));
+      File.WriteAllText("out.s", asm);
     }
   }
 }
