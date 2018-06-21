@@ -14,11 +14,19 @@ namespace CCompiler.AbstractSyntaxTree
     public Statement(Expression returnExp) =>
       this.returnExp = returnExp;
 
-    public override bool Equals(object obj) => 
+    public override bool Equals(object obj) =>
       obj is Statement statement &&
-             EqualityComparer<Expression>.Default.Equals(returnExp, statement.returnExp);
+      EqualityComparer<Expression>.Default.Equals(returnExp, statement.returnExp);
 
     public override int GetHashCode() =>
       HashCode.Combine(returnExp);
+
+    public string Print()
+    {
+      var ret = "Statement: \n" +
+                "\t" + returnExp.Print() + " \n";
+
+      return ret;
+    }
   }
 }

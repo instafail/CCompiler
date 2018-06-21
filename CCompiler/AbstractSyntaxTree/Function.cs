@@ -4,7 +4,7 @@ namespace CCompiler.AbstractSyntaxTree
   using System.Linq;
   using System.Collections.Generic;
 
-  public class Function
+  public class Function : IPrintable
   {
     public readonly string name;
     public readonly List<Statement> statementList = new List<Statement>();
@@ -34,6 +34,18 @@ namespace CCompiler.AbstractSyntaxTree
     public override int GetHashCode()
     {
       return HashCode.Combine(name, statementList);
+    }
+
+    public string Print()
+    {
+      var ret = "Function: " + name + " \n";
+      foreach (var statement in statementList)
+      {
+        var fString = statement.Print().Split('\n');
+        ret = fString.Aggregate(ret, (current, line) => current + ("\t" + line + "\n"));
+      }
+
+      return ret;
     }
   }
 }

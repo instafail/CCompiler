@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace CCompiler
@@ -7,7 +8,9 @@ namespace CCompiler
     static void Main(string[] args)
     {
       var source = File.ReadAllText(args[0]);
-      var asm = CC.Generate(CC.LexAndParse(source));
+      var ast = CC.LexAndParse(source);
+      Console.WriteLine(ast.Print());
+      var asm = CC.Generate(ast);
       File.WriteAllText("out.s", asm);
     }
   }
