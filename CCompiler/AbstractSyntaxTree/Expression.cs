@@ -2,7 +2,7 @@ namespace CCompiler.AbstractSyntaxTree
 {
   using System;
 
-  public class Expression
+  public class Expression : IPrintable
   {
     public readonly int i;
 
@@ -16,5 +16,10 @@ namespace CCompiler.AbstractSyntaxTree
 
     public override int GetHashCode() =>
       HashCode.Combine(i);
+
+    public string Print()
+    {
+      return "Expression: " + i.ToString() + "\n";
+    }
   }
 }

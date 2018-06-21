@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace CCompiler.AbstractSyntaxTree
 {
-  public class Program
+  public class Program : IPrintable
   {
     public readonly List<Function> functionList = new List<Function>();
 
@@ -24,6 +24,18 @@ namespace CCompiler.AbstractSyntaxTree
     public override int GetHashCode()
     {
       return HashCode.Combine(functionList);
+    }
+
+    public string Print()
+    {
+      var ret = "Program: \n";
+      foreach (var function in functionList)
+      {
+        var fString = function.Print().Split('\n');
+        ret = fString.Aggregate(ret, (current, line) => current + ("\t" + line + "\n"));
+      }
+
+      return ret.TrimEnd();
     }
   }
 }
