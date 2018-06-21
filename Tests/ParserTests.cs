@@ -22,8 +22,7 @@ namespace Tests
     {
       var expectedProgram =
         new Program(
-          new Function("main", new Statement(new Expression(2)))
-        );
+          new Function("main", new Statement(new Expression(2))));
 
       var tokens = new TokenList
       {

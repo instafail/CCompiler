@@ -5,12 +5,12 @@ using Xunit;
 
 namespace Tests
 {
-  public class IT
+  public class IntegrationTests
   {
     public static TheoryData<string> Valids = new TheoryData<string>();
     public static TheoryData<string> Invalids = new TheoryData<string>();
 
-    static IT()
+    static IntegrationTests()
     {
       var i = Directory.GetFiles("TestData/Invalid");
       foreach (var item in i)
