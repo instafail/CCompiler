@@ -25,16 +25,9 @@ namespace CCompiler.AbstractSyntaxTree
       this.statementList.AddRange(statementList);
     }
 
-    public override bool Equals(object obj)
-    {
-      return obj is Function function &&
+    public override bool Equals(object obj) =>
+      obj is Function function &&
              name == function.name && statementList.SequenceEqual(function.statementList);
-    }
-
-    public override int GetHashCode()
-    {
-      return HashCode.Combine(name, statementList);
-    }
 
     public string Print()
     {
@@ -47,5 +40,8 @@ namespace CCompiler.AbstractSyntaxTree
 
       return ret;
     }
+
+    public override int GetHashCode() =>
+      HashCode.Combine(name, statementList);
   }
 }

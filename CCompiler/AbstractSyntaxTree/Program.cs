@@ -21,11 +21,6 @@ namespace CCompiler.AbstractSyntaxTree
     public override bool Equals(object obj) =>
       obj is Program program && functionList.SequenceEqual(program.functionList);
 
-    public override int GetHashCode()
-    {
-      return HashCode.Combine(functionList);
-    }
-
     public string Print()
     {
       var ret = "Program: \n";
@@ -37,5 +32,9 @@ namespace CCompiler.AbstractSyntaxTree
 
       return ret.TrimEnd();
     }
+
+    public override int GetHashCode() =>
+      HashCode.Combine(functionList);
+
   }
 }
