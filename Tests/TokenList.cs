@@ -1,12 +1,11 @@
 using CCompiler;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Tests
 {
-  class TokenList : Dictionary<string, TokenType>
+  class TokenList : List<Token>
   {
-    public static implicit operator List<Token>(TokenList list) =>
-      list.Select(x => new Token(x.Key, x.Value)).ToList();
+    public void Add(string text, TokenType type) =>
+      this.Add(new Token(text, type));
   }
 }

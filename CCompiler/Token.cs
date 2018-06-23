@@ -5,16 +5,25 @@ namespace CCompiler
     public readonly TokenType type;
     public readonly string text;
 
+    /// <summary>
+    /// origin index in file , do not have this in Equals
+    /// </summary>
+    public readonly int fileIndex;
+
     public Token(string text, TokenType type)
+      : this(text, type, -1)
+    {
+    }
+
+    public Token(string text, TokenType type, int fileIndex)
     {
       this.text = text;
       this.type = type;
+      this.fileIndex = fileIndex;
     }
 
-    protected bool Equals(Token other)
-    {
-      return type == other.type && string.Equals(text, other.text);
-    }
+    protected bool Equals(Token other) =>
+      type == other.type && string.Equals(text, other.text);
 
     public override bool Equals(object obj)
     {
@@ -32,10 +41,8 @@ namespace CCompiler
       }
     }
 
-    public override string ToString()
-    {
-      return text + ": " + type;
-    }
+    public override string ToString() =>
+      $"{text} ({fileIndex}) : {type}";
   }
 
   public enum TokenType
