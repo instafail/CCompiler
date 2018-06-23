@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using CCompiler.AbstractSyntaxTree;
 
 namespace CCompiler
 {
   public static class CC
   {
-    private static readonly HashSet<string> Keywords = new HashSet<string>()
-    {
-      "int",
-      "return"
-    };
-
+ 
     public static Program Parse(List<Token> list)
     {
       if (list == null)
@@ -151,75 +145,10 @@ namespace CCompiler
       return GenerateFunction(p.functionList[0]);
     }
 
-    public static List<Token> Lex(string s)
-    {
-      var ret = new List<Token>();
-      var buf = ""; // This may have to become a char[] for performance later...
-      var wordBreakers = new HashSet<char>() {'{', '}', '(', ')', ';', ' ', '\n'};
-      foreach (var c in s)
-      {
-        if (wordBreakers.Contains(c))
-        {
-          if (!string.IsNullOrWhiteSpace(buf))
-            ret.Add(Classify(buf));
-          if (!char.IsWhiteSpace(c))
-          {
-            if (wordBreakers.Contains(c))
-            {
-              ret.Add(Classify(c));
-              buf = "";
-            }
-            else
-              buf = c.ToString();
-          }
-          else
-            buf = "";
-        }
-        else
-        {
-          buf += c.ToString();
-        }
-      }
-
-      if (!string.IsNullOrWhiteSpace(buf))
-        ret.Add(Classify(buf));
-
-      return ret;
-    }
-
-    private static Token Classify(char token)
-    {
-      return Classify(token.ToString());
-    }
-
-    private static Token Classify(string token)
-    {
-      TokenType type;
-      // This could probably be made into a Map, then iterated over.
-      // Needs to be OrderedMap, since keywords should be matched before identifiers
-      if (token.Equals("{"))
-        type = TokenType.OpenBrace;
-      else if (token.Equals("}"))
-        type = TokenType.CloseBrace;
-      else if (token.Equals("("))
-        type = TokenType.OpenParen;
-      else if (token.Equals(")"))
-        type = TokenType.CloseParen;
-      else if (token.Equals(";"))
-        type = TokenType.Semicolon;
-      else if (Regex.IsMatch(token, "^[0-9]+$")) // Static compile of regex?
-        type = TokenType.Integer; // 1 2 3 11
-      else if (Keywords.Contains(token))
-        type = TokenType.Keyword; // int return 
-      else
-        type = TokenType.Identifier;
-
-      return new Token(token, type);
-    }
-
     public static Program LexAndParse(string source)
     {
-      var tokens = Lex(source);
+      var lexer = new Lexer();
+      var tokens = lexer.Lex(source);
       return Parse(tokens);
     }
   }

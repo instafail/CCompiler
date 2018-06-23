@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using CCompiler;
 using Xunit;
@@ -7,36 +7,44 @@ namespace Tests
 {
   public class IntegrationTests
   {
-    public static TheoryData<string> Valids = new TheoryData<string>();
-    public static TheoryData<string> Invalids = new TheoryData<string>();
+    public class FilePathAndFileContent
+    {
+      public string Path { get; set; }
+      public string Content { get; set; }
+      public FilePathAndFileContent(string path) =>
+        this.Content = File.ReadAllText((this.Path = path));
+      public override string ToString() =>
+        $"{this.Path} {this.Content}";
+    }
+
+    public static TheoryData<FilePathAndFileContent> Valids =
+      new TheoryData<FilePathAndFileContent>();
+    public static TheoryData<FilePathAndFileContent> Invalids =
+      new TheoryData<FilePathAndFileContent>();
 
     static IntegrationTests()
     {
       var i = Directory.GetFiles("TestData/Invalid");
-      foreach (var item in i)
+      foreach (var path in i)
       {
-        Invalids.Add(File.ReadAllText(item));
+        Invalids.Add(new FilePathAndFileContent(path));
       }
 
       var v = Directory.GetFiles("TestData/Valid");
-      foreach (var item in v)
+      foreach (var path in v)
       {
-        Valids.Add(File.ReadAllText(item));
+        Valids.Add(new FilePathAndFileContent(path));
       }
     }
 
     [Theory]
     [MemberData(nameof(Valids))]
-    public void ValidCases(string source)
-    {
-      CC.LexAndParse(source);
-    }
+    public void ValidCases(FilePathAndFileContent file) => 
+      CC.LexAndParse(file.Content);
 
     [Theory]
     [MemberData(nameof(Invalids))]
-    public void InvalidCases(string source)
-    {
-      Assert.Throws<Exception>(() => CC.LexAndParse(source));
-    }
+    public void InvalidCases(FilePathAndFileContent file) => 
+      Assert.Throws<Exception>(() => CC.LexAndParse(file.Content));
   }
 }
