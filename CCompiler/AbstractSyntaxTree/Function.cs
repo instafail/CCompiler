@@ -40,7 +40,7 @@ namespace CCompiler.AbstractSyntaxTree
 
       return ret;
     }
-
+    
     public override int GetHashCode() =>
       HashCode.Combine(name, statementList);
   }
