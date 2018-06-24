@@ -148,7 +148,7 @@ namespace CCompiler
     public static Program LexAndParse(string source)
     {
       var lexer = new Lexer();
-      var tokens = lexer.Lex(source);
+      var tokens = lexer.LexString(source);
       return Parse(tokens);
     }
   }

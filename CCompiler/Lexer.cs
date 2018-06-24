@@ -2,24 +2,11 @@ namespace CCompiler
 {
   using System;
   using System.Collections.Generic;
+  using System.IO;
   using System.Text;
   using System.Text.RegularExpressions;
-
   public class Lexer
   {
-    [Flags]
-    private enum LexerMode
-    {
-      Normal = 1 << 0,
-
-      String = 1 << 1,
-      StringEscape = 1 << 2,
-
-      CommentStart = 1 << 3,
-      Comment = 1 << 4,
-      CommentEnd = 1 << 5,
-    }
-
     private static readonly HashSet<char> wordBreakers = new HashSet<char> {
       ' ', '\n', '\r', '\t',    // Char.IsWhiteSpace(c) = true
       ';', '{', '}', '(', ')'   // Char.IsWhiteSpace(c) = false
@@ -31,66 +18,92 @@ namespace CCompiler
       "return"
     };
 
-    public List<Token> Lex(string sourceCode)
-    {
-      var ret = new List<Token>();
-      var mode = LexerMode.Normal;
-      var buffer = new StringBuilder();
-      int lineNumber = 0;
+    private readonly List<Token> tokenList = new List<Token>();
+    private readonly StringBuilder buffer = new StringBuilder();
+    private readonly Char[] fileBuffer = new char[4096];
 
-      void ClassifyStrBuilder()
+    private LexerMode mode;
+    private int lineNumber;
+    private string filePath;
+
+    public List<Token> LexString(string sourceCode) =>
+      this.LexString(sourceCode, string.Empty);
+
+    public List<Token> LexString(string sourceCode, string filePath)
+    {
+      this.Init(filePath);
+      this.LexSourceCode(sourceCode.AsSpan());
+      this.EndOfLex();
+      return this.tokenList;
+    }
+
+    public List<Token> LexFile(string filePath)
+    {
+      using (var fsStream = File.OpenText(filePath))
       {
-        if (buffer.Length != 0)
-        {
-          ret.Add(Classify(buffer.ToString(), lineNumber));
-          buffer.Clear();
-        }
+        return this.LexFile(fsStream, filePath);
       }
-      
+    }
+
+    public List<Token> LexFile(StreamReader fsStream, string filePath)
+    {
+      this.Init(filePath);
+      while (!fsStream.EndOfStream)
+      {
+        var read = fsStream.ReadBlock(this.fileBuffer);
+        this.LexSourceCode(this.fileBuffer.AsSpan(0, read));
+      }
+
+      this.EndOfLex();
+      return this.tokenList;
+    }
+
+    private void LexSourceCode(ReadOnlySpan<char> sourceCode)
+    {
       foreach (var c in sourceCode)
       {
-        if(c == '\n')
+        if (c == '\n')
         {
-          lineNumber++;
+          this.lineNumber++;
         }
 
-        switch (mode)
+        switch (this.mode)
         {
           case LexerMode.Normal:
             if (wordBreakers.Contains(c))
             {
-              ClassifyStrBuilder();
+              this.ClassifyStrBuilder();
               if (!Char.IsWhiteSpace(c))
               {
-                ret.Add(Classify(c, lineNumber));
+                this.tokenList.Add(Classify(c));
               }
               break;
             }
 
             if (c == '"')
             {
-              ClassifyStrBuilder();
-              mode = LexerMode.String;
+              this.ClassifyStrBuilder();
+              this.mode = LexerMode.String;
             }
             else if (c == '/')
             {
-              ClassifyStrBuilder();
-              mode = LexerMode.CommentStart;
+              this.ClassifyStrBuilder();
+              this.mode = LexerMode.CommentStart;
             }
             else
             {
-              buffer.Append(c);
+              this.buffer.Append(c);
             }
 
             break;
 
           case LexerMode.String:
             if (c == '\\')
-              mode = LexerMode.StringEscape;
+              this.mode = LexerMode.StringEscape;
             else if (c == '"')
               throw new NotImplementedException("add string token");
             else
-              buffer.Append(c);
+              this.buffer.Append(c);
             break;
 
           case LexerMode.StringEscape:
@@ -99,30 +112,40 @@ namespace CCompiler
           case LexerMode.CommentStart:
             if (c == '*')
             {
-              mode = LexerMode.Comment;
+              this.mode = LexerMode.Comment;
               break;
             }
             else
             {
-              mode = LexerMode.Normal;
+              this.mode = LexerMode.Normal;
               goto case LexerMode.Normal;
             }
 
           case LexerMode.Comment:
             if (c == '*')
-              mode = LexerMode.CommentEnd;
+              this.mode = LexerMode.CommentEnd;
             break;
 
           case LexerMode.CommentEnd:
-            mode = c == '/' ? LexerMode.Normal : LexerMode.Comment;
+            this.mode = c == '/' ? LexerMode.Normal : LexerMode.Comment;
             break;
 
           default:
             throw new Exception("?");
         }
       }
+    }
 
-      ClassifyStrBuilder();
+    private void Init(string filePath)
+    {
+      this.filePath = filePath;
+      this.lineNumber = 1;
+      this.mode = LexerMode.Normal;
+    }
+
+    private void EndOfLex()
+    {
+      this.ClassifyStrBuilder();
 
       if (((LexerMode.Comment | LexerMode.CommentEnd) & mode) != 0)
       {
@@ -133,36 +156,65 @@ namespace CCompiler
       {
         throw new Exception("unterminated string");
       }
-
-      return ret;
     }
 
-    private Token Classify(char token, int fileIndex) =>
-      Classify(token.ToString(), fileIndex);
+    private void ClassifyStrBuilder()
+    {
+      if (this.buffer.Length != 0)
+      {
+        this.tokenList.Add(Classify(this.buffer.ToString()));
+        this.buffer.Clear();
+      }
+    }
 
-    private Token Classify(string token, int lineNumber)
+    private Token Classify(char token) =>
+      Classify(token.ToString());
+
+    private Token Classify(string token)
     {
       TokenType type;
-      // This could probably be made into a Map, then iterated over.
-      // Needs to be OrderedMap, since keywords should be matched before identifiers
-      if (token.Equals("{"))
-        type = TokenType.OpenBrace;
-      else if (token.Equals("}"))
-        type = TokenType.CloseBrace;
-      else if (token.Equals("("))
-        type = TokenType.OpenParen;
-      else if (token.Equals(")"))
-        type = TokenType.CloseParen;
-      else if (token.Equals(";"))
-        type = TokenType.Semicolon;
-      else if (Regex.IsMatch(token, "^[0-9]+$")) // Static compile of regex?
-        type = TokenType.Integer; // 1 2 3 11
-      else if (Keywords.Contains(token))
-        type = TokenType.Keyword; // int return 
-      else
-        type = TokenType.Identifier;
 
-      return new Token(token, type);
+      void ClassifyInner()
+      {
+        if (Regex.IsMatch(token, "^[0-9]+$")) // Static compile of regex?
+          type = TokenType.Integer; // 1 2 3 11
+        else if (Keywords.Contains(token))
+          type = TokenType.Keyword; // int return 
+        else
+          type = TokenType.Identifier;
+      }
+
+      if (token.Length == 1)
+      {
+        switch (token[0])
+        {
+          case '{':
+            type = TokenType.OpenBrace;
+            break;
+          case '}':
+            type = TokenType.CloseBrace;
+            break;
+          case '(':
+            type = TokenType.OpenParen;
+            break;
+          case ')':
+            type = TokenType.CloseParen;
+            break;
+          case ';':
+            type = TokenType.Semicolon;
+            break;
+
+          default:
+            ClassifyInner();
+            break;
+        }
+      }
+      else
+      {
+        ClassifyInner();
+      }
+
+      return new Token(token, type, this.filePath, this.lineNumber);
     }
   }
 }
