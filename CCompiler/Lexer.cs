@@ -12,16 +12,18 @@ namespace CCompiler
     {
       Normal = 1 << 0,
 
-      Stirng = 1 << 1,
-      StirngEscape = 1 << 2,
+      String = 1 << 1,
+      StringEscape = 1 << 2,
 
       CommentStart = 1 << 3,
       Comment = 1 << 4,
-      CommentEed = 1 << 5,
+      CommentEnd = 1 << 5,
     }
 
-    private static readonly HashSet<char> endWordBreakers = new HashSet<char> { ' ', '\n', '\r' };
-    private static readonly HashSet<char> wordBreakers = new HashSet<char> { ';', '{', '}', '(', ')' };
+    private static readonly HashSet<char> wordBreakers = new HashSet<char> {
+      ' ', '\n', '\r', '\t',    // Char.IsWhiteSpace(c) = true
+      ';', '{', '}', '(', ')'   // Char.IsWhiteSpace(c) = false
+    };
 
     private static readonly HashSet<string> Keywords = new HashSet<string>
     {
@@ -33,41 +35,42 @@ namespace CCompiler
     {
       var ret = new List<Token>();
       var mode = LexerMode.Normal;
-      var strBuilder = new StringBuilder();
-      int fileIndex = -1;
+      var buffer = new StringBuilder();
+      int lineNumber = 0;
 
       void ClassifyStrBuilder()
       {
-        if (strBuilder.Length != 0)
+        if (buffer.Length != 0)
         {
-          ret.Add(Classify(strBuilder.ToString(), fileIndex));
-          strBuilder.Clear();
+          ret.Add(Classify(buffer.ToString(), lineNumber));
+          buffer.Clear();
         }
       }
-
+      
       foreach (var c in sourceCode)
       {
-        fileIndex++;
+        if(c == '\n')
+        {
+          lineNumber++;
+        }
+
         switch (mode)
         {
           case LexerMode.Normal:
-            if (endWordBreakers.Contains(c))
-            {
-              ClassifyStrBuilder();
-              break;
-            }
-
             if (wordBreakers.Contains(c))
             {
               ClassifyStrBuilder();
-              ret.Add(Classify(c, fileIndex));
+              if (!Char.IsWhiteSpace(c))
+              {
+                ret.Add(Classify(c, lineNumber));
+              }
               break;
             }
 
             if (c == '"')
             {
               ClassifyStrBuilder();
-              mode = LexerMode.Stirng;
+              mode = LexerMode.String;
             }
             else if (c == '/')
             {
@@ -76,20 +79,21 @@ namespace CCompiler
             }
             else
             {
-              strBuilder.Append(c);
+              buffer.Append(c);
             }
+
             break;
 
-          case LexerMode.Stirng:
+          case LexerMode.String:
             if (c == '\\')
-              mode = LexerMode.StirngEscape;
+              mode = LexerMode.StringEscape;
             else if (c == '"')
               throw new NotImplementedException("add string token");
             else
-              strBuilder.Append(c);
+              buffer.Append(c);
             break;
 
-          case LexerMode.StirngEscape:
+          case LexerMode.StringEscape:
             throw new NotImplementedException("Escape Stirng");
 
           case LexerMode.CommentStart:
@@ -106,10 +110,10 @@ namespace CCompiler
 
           case LexerMode.Comment:
             if (c == '*')
-              mode = LexerMode.CommentEed;
+              mode = LexerMode.CommentEnd;
             break;
 
-          case LexerMode.CommentEed:
+          case LexerMode.CommentEnd:
             mode = c == '/' ? LexerMode.Normal : LexerMode.Comment;
             break;
 
@@ -120,12 +124,12 @@ namespace CCompiler
 
       ClassifyStrBuilder();
 
-      if (((LexerMode.Comment | LexerMode.CommentEed) & mode) != 0)
+      if (((LexerMode.Comment | LexerMode.CommentEnd) & mode) != 0)
       {
         throw new Exception("unterminated comment");
       }
 
-      if(((LexerMode.Stirng | LexerMode.StirngEscape) & mode) != 0)
+      if (((LexerMode.String | LexerMode.StringEscape) & mode) != 0)
       {
         throw new Exception("unterminated string");
       }
@@ -136,7 +140,7 @@ namespace CCompiler
     private Token Classify(char token, int fileIndex) =>
       Classify(token.ToString(), fileIndex);
 
-    private Token Classify(string token, int fileIndex)
+    private Token Classify(string token, int lineNumber)
     {
       TokenType type;
       // This could probably be made into a Map, then iterated over.
@@ -158,7 +162,7 @@ namespace CCompiler
       else
         type = TokenType.Identifier;
 
-      return new Token(token, type, fileIndex);
+      return new Token(token, type);
     }
   }
 }

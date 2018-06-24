@@ -4,22 +4,20 @@ namespace CCompiler
   {
     public readonly TokenType type;
     public readonly string text;
-
-    /// <summary>
-    /// origin index in file , do not have this in Equals
-    /// </summary>
-    public readonly int fileIndex;
+    public readonly int lineNumber;
+    public readonly string filePath;
 
     public Token(string text, TokenType type)
-      : this(text, type, -1)
+      : this(text, type, string.Empty, -1)
     {
     }
 
-    public Token(string text, TokenType type, int fileIndex)
+    public Token(string text, TokenType type, string filePath, int lineNumber)
     {
       this.text = text;
       this.type = type;
-      this.fileIndex = fileIndex;
+      this.filePath = filePath;
+      this.lineNumber = lineNumber;
     }
 
     protected bool Equals(Token other) =>
@@ -30,19 +28,19 @@ namespace CCompiler
       if (ReferenceEquals(null, obj)) return false;
       if (ReferenceEquals(this, obj)) return true;
       if (obj.GetType() != this.GetType()) return false;
-      return Equals((Token) obj);
+      return Equals((Token)obj);
     }
 
     public override int GetHashCode()
     {
       unchecked
       {
-        return ((int) type * 397) ^ (text?.GetHashCode() ?? 0);
+        return ((int)type * 397) ^ (text?.GetHashCode() ?? 0);
       }
     }
 
     public override string ToString() =>
-      $"{text} ({fileIndex}) : {type}";
+      $"{text} ({filePath}:{lineNumber}) : {type}";
   }
 
   public enum TokenType
