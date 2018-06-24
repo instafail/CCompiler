@@ -7,7 +7,7 @@ namespace Tests
 {
   public class IntegrationTests
   {
-    public class FilePathAndFileContent
+    public struct FilePathAndFileContent
     {
       public string Path { get; set; }
       public string Content { get; set; }
