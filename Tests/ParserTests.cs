@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CCompiler;
 using CCompiler.AbstractSyntaxTree;
 using Xunit;
+using FluentAssertions;
 using static CCompiler.TokenType;
 
 namespace Tests
@@ -22,7 +23,7 @@ namespace Tests
     {
       var expectedProgram =
         new Program(
-          new Function("main", new Statement(new Expression(2))));
+          new Function("main", new Statement(new Constant(2))));
 
       var tokens = new TokenList
       {
@@ -39,7 +40,34 @@ namespace Tests
 
       var actualProgram = CC.Parse(tokens);
 
-      Assert.Equal(expectedProgram, actualProgram);
+      expectedProgram.Should().Be(actualProgram);
+    }
+
+    [Fact]
+    public void ParseNegation()
+    {
+      var expectedProgram =
+        new Program(
+          new Function("main", new Statement(new UnaryOp(UnaryOp.Type.Negation, new Constant(2)))));
+
+      var tokens = new TokenList
+      {
+        {"int", Keyword},
+        {"main", Identifier},
+        {"(", OpenParen},
+        {")", CloseParen},
+        {"{", OpenBrace},
+        {"return", Keyword},
+        {"-", Negation},
+        {"2", Integer},
+        {";", Semicolon},
+        {"}", CloseBrace},
+      };
+
+      var actualProgram = CC.Parse(tokens);
+
+      expectedProgram.Should().Be(actualProgram);
+
     }
   }
 }
