@@ -9,7 +9,7 @@ namespace CCompiler
   {
     private static readonly HashSet<char> wordBreakers = new HashSet<char> {
       ' ', '\n', '\r', '\t',    // Char.IsWhiteSpace(c) = true
-      ';', '{', '}', '(', ')'   // Char.IsWhiteSpace(c) = false
+      ';', '{', '}', '(', ')', '-',   // Char.IsWhiteSpace(c) = false
     };
 
     private static readonly HashSet<string> Keywords = new HashSet<string>
@@ -22,51 +22,50 @@ namespace CCompiler
     private readonly StringBuilder buffer = new StringBuilder();
     private readonly Char[] fileBuffer = new char[4096];
 
-    private LexerMode mode;
-    private int lineNumber;
+    private LexerMode mode = LexerMode.Normal;
+    private int lineNumber = 1;
     private string filePath;
 
-    public List<Token> LexString(string sourceCode) =>
-      this.LexString(sourceCode, string.Empty);
+    private Lexer(string filePath) => 
+      this.filePath = filePath;
 
-    public List<Token> LexString(string sourceCode, string filePath)
+    public static List<Token> LexString(string sourceCode) =>
+      LexString(sourceCode, string.Empty);
+
+    public static List<Token> LexString(string sourceCode, string filePath)
     {
-      this.Init(filePath);
-      this.LexSourceCode(sourceCode.AsSpan());
-      this.EndOfLex();
-      return this.tokenList;
+      var lexer = new Lexer(filePath);
+      lexer.LexSourceCode(sourceCode.AsSpan());
+      lexer.EndOfLex();
+      return lexer.tokenList;
     }
 
-    public List<Token> LexFile(string filePath)
+    public static List<Token> LexFile(string filePath)
     {
       using (var fsStream = File.OpenText(filePath))
       {
-        return this.LexFile(fsStream, filePath);
+        return LexFile(fsStream, filePath);
       }
     }
 
-    public List<Token> LexFile(StreamReader fsStream, string filePath)
+    public static List<Token> LexFile(StreamReader fsStream, string filePath)
     {
-      this.Init(filePath);
+      var lexer = new Lexer(filePath);
       while (!fsStream.EndOfStream)
       {
-        var read = fsStream.ReadBlock(this.fileBuffer);
-        this.LexSourceCode(this.fileBuffer.AsSpan(0, read));
+        var fileBuffer = lexer.fileBuffer;
+        var read = fsStream.ReadBlock(fileBuffer);
+        lexer.LexSourceCode(fileBuffer.AsSpan(0, read));
       }
 
-      this.EndOfLex();
-      return this.tokenList;
+      lexer.EndOfLex();
+      return lexer.tokenList;
     }
 
     private void LexSourceCode(ReadOnlySpan<char> sourceCode)
     {
       foreach (var c in sourceCode)
       {
-        if (c == '\n')
-        {
-          this.lineNumber++;
-        }
-
         switch (this.mode)
         {
           case LexerMode.Normal:
@@ -133,14 +132,12 @@ namespace CCompiler
           default:
             throw new Exception("?");
         }
-      }
-    }
 
-    private void Init(string filePath)
-    {
-      this.filePath = filePath;
-      this.lineNumber = 1;
-      this.mode = LexerMode.Normal;
+        if (c == '\n')
+        {
+          this.lineNumber++;
+        }
+      }
     }
 
     private void EndOfLex()
@@ -202,6 +199,9 @@ namespace CCompiler
             break;
           case ';':
             type = TokenType.Semicolon;
+            break;
+          case '-':
+            type = TokenType.Negation;
             break;
 
           default:

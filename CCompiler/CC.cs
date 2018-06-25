@@ -6,7 +6,7 @@ namespace CCompiler
 {
   public static class CC
   {
- 
+
     public static Program Parse(List<Token> list)
     {
       if (list == null)
@@ -100,13 +100,22 @@ namespace CCompiler
 
     private static Expression ParseExpression(IEnumerator<Token> enumerator)
     {
+      var t = GetNext(enumerator);
       try
       {
-        return new Expression(int.Parse(GetNext(enumerator).text));
+        switch (t.type)
+        {
+          case TokenType.Integer:
+            return new Constant(int.Parse(t.text));
+          case TokenType.Negation:
+            return UnaryOp.Negation(ParseExpression(enumerator));
+          default:
+            throw new Exception("Bad Expression");
+        }
       }
       catch (FormatException)
       {
-        throw new Exception("Bad integer constant");
+        throw new Exception("Bad numeric");
       }
     }
 
@@ -125,13 +134,34 @@ namespace CCompiler
 
     private static string GenerateExpression(Expression e)
     {
-      return "$" + e.i;
+      if (e is Constant c)
+        return "$" + c.i;
+      if (e is UnaryOp u)
+      {
+        switch (u.type)
+        {
+          case UnaryOp.Type.Negation:
+            var ret = "\tmovl " + GenerateExpression(u.expression) + ", %ebx\n";
+            return ret + "\tneg %ebx\n";
+          default:
+            throw new NotImplementedException();
+        }
+      }
+      throw new NotImplementedException();
     }
+    /*
+        RAX - 64 ------------ EAX - 32 ------ AX 16 AH 8, AL, 8
+
+        movl $2, %eax
+        neg %eax
+        ret
+        */
 
     private static string GenerateStatement(Statement s)
     {
-      return "\tmovl " + GenerateExpression(s.returnExp) + ", %eax\n" +
-             "\tret\n";
+      return GenerateExpression(s.returnExp) +
+        "\tmovl %ebx, %eax\n" +
+        "\tret\n";
     }
 
     public static string GenerateFunction(Function f)
@@ -147,8 +177,7 @@ namespace CCompiler
 
     public static Program LexAndParse(string source)
     {
-      var lexer = new Lexer();
-      var tokens = lexer.LexString(source);
+      var tokens = Lexer.LexString(source);
       return Parse(tokens);
     }
   }

@@ -46,12 +46,18 @@ namespace CCompiler
   public enum TokenType
   {
     Keyword,
-    Identifier,
+
     OpenBrace,
     CloseBrace,
+
     OpenParen,
     CloseParen,
+
     Semicolon,
-    Integer
+
+    Integer,
+
+    Identifier,
+    Negation,
   }
 }
