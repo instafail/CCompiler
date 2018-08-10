@@ -17,11 +17,8 @@ namespace CCompiler
       return parser.Pars();
     }
 
-    public static string Generate(Program p)
-    {
-      var generate = new Generater(p);
-      return generate.Generate();
-    }
+    public static string Generate(Program p) =>
+      Generater.Generate(p);
 
     public static Program LexAndParse(string source)
     {

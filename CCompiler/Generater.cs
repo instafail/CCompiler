@@ -2,17 +2,12 @@ namespace CCompiler
 {
   using System;
   using CCompiler.AbstractSyntaxTree;
-  internal class Generater
+  internal static class Generater
   {
-    private Program program;
+    internal static string Generate(Program program) =>
+      GenerateFunction(program.functionList[0]);
 
-    internal Generater(Program program) =>
-      this.program = program;
-
-    internal string Generate() =>
-      this.GenerateFunction(this.program.functionList[0]);
-
-    private string GenerateExpression(Expression e)
+    private static string GenerateExpression(Expression e)
     {
       if (e is Constant c)
         return "$" + c.i;
@@ -21,7 +16,7 @@ namespace CCompiler
         switch (u.type)
         {
           case UnaryOp.Type.Negation:
-            var ret = "\tmovl " + this.GenerateExpression(u.expression) + ", %ebx\n";
+            var ret = "\tmovl " + GenerateExpression(u.expression) + ", %ebx\n";
             return ret + "\tneg %ebx\n";
           default:
             throw new NotImplementedException();
@@ -37,12 +32,12 @@ namespace CCompiler
         ret
         */
 
-    private string GenerateStatement(Statement s) =>
-      this.GenerateExpression(s.returnExp) +
+    private static string GenerateStatement(Statement s) =>
+      GenerateExpression(s.returnExp) +
         "\tmovl %ebx, %eax\n" +
         "\tret\n";
 
-    private string GenerateFunction(Function f) =>
+    private static string GenerateFunction(Function f) =>
       "\t.globl\t_main\n" +
       "_main:\n" + GenerateStatement(f.statementList[0]);
   }
